@@ -53,6 +53,7 @@ public class MainActivity  extends BlunoLibrary {
 				// TODO Auto-generated method stub
 
 				serialSend(serialSendText.getText().toString());				//send the data to the BLUNO
+				//System.out.println(serialSendText.getText().toString());
 			}
 		});
 
@@ -123,11 +124,25 @@ public class MainActivity  extends BlunoLibrary {
 	}
 
 	@Override
-	public void onSerialReceived(String theString) {							//Once connection data received, this function will be called
-		// TODO Auto-generated method stub
-		serialReceivedText.append(theString);							//append the text into the EditText
+	public void onSerialReceived(String theString) {
+		// append the text into the EditText
+		serialReceivedText.append(theString);
+
+		// find the alarm button in the layout
+		Button alarmButton = findViewById(R.id.alarmButton);
+		// if the received string equals "TRIGGER_ALARM"
+		if (theString.contains("TRIGGER_ALARM")) {
+			// make the alarm button visible
+			alarmButton.setVisibility(View.VISIBLE);
+		}
+		else {
+			// hide the alarm button
+			alarmButton.setVisibility(View.INVISIBLE);
+		}
+
 		//The Serial data from the BLUNO may be sub-packaged, so using a buffer to hold the String is a good choice.
 		((ScrollView)serialReceivedText.getParent()).fullScroll(View.FOCUS_DOWN);
 	}
+
 
 }

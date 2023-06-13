@@ -73,4 +73,16 @@
         android:layout_alignParentTop="true"
         android:text="Scan" />
 
+    <Button
+        android:id="@+id/alarmButton"
+        android:layout_width="243dp"
+        android:layout_height="215dp"
+        android:layout_centerInParent="true"
+        android:background="@android:color/holo_red_dark"
+        android:text="ALARM!"
+        android:textColor="#FFFFFF"
+        android:textSize="30sp"
+        android:visibility="invisible" />
+
+
 </RelativeLayout>
