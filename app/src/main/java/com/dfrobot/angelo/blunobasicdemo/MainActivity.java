@@ -1,6 +1,9 @@
 package com.dfrobot.angelo.blunobasicdemo;
 
 import android.content.Context;
+import android.content.res.ColorStateList;
+import android.graphics.Color;
+import android.graphics.PorterDuff;
 import android.os.Bundle;
 import android.content.Intent;
 import android.util.Log;
@@ -19,9 +22,17 @@ public class MainActivity  extends BlunoLibrary {
 	private Button buttonSerialSend;
 	private Button buttonArm;
 	private Button buttonDisarm;
+	private Button buttonConnectionStatus;
+	private Button buttonArmedStatus;
+	private Button buttonEngagedStatus;
+	private Button buttonAlarmStatus;
 	private EditText serialSendText;
 	private TextView serialReceivedText;
 	private TextView serialStatusText;
+	private ColorStateList redStateList;
+	private ColorStateList greenStateList;
+	private ColorStateList yellowStateList;
+	private ColorStateList grayStateList;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -95,6 +106,16 @@ public class MainActivity  extends BlunoLibrary {
 				serialSend("disarm");
 			}
 		});
+
+		buttonConnectionStatus = (Button) findViewById(R.id.buttonConnectionStatus);
+		buttonArmedStatus = (Button) findViewById(R.id.buttonArmedStatus);
+		buttonEngagedStatus = (Button) findViewById(R.id.buttonEngagedStatus);
+		buttonAlarmStatus = (Button) findViewById(R.id.buttonAlarmStatus);
+
+		redStateList = ColorStateList.valueOf(Color.RED);
+		greenStateList = ColorStateList.valueOf(Color.GREEN);
+		yellowStateList = ColorStateList.valueOf(Color.YELLOW);
+		grayStateList = ColorStateList.valueOf(Color.GRAY);
 	}
 
 	protected void onResume(){
@@ -129,16 +150,28 @@ public class MainActivity  extends BlunoLibrary {
     }
 
 	@Override
-	public void onConectionStateChange(connectionStateEnum theConnectionState) {//Once connection state changes, this function will be called
+	public void onConnectionStateChange(connectionStateEnum theConnectionState) {//Once connection state changes, this function will be called
 		switch (theConnectionState) {											//Four connection state
 		case isConnected:
 			buttonScan.setText("Connected");
+			buttonConnectionStatus.setBackgroundTintList(greenStateList);
+			buttonConnectionStatus.setText("Connected");
 			break;
 		case isConnecting:
 			buttonScan.setText("Connecting");
+			buttonConnectionStatus.setBackgroundTintList(yellowStateList);
+			buttonConnectionStatus.setText("Connecting");
 			break;
 		case isToScan:
 			buttonScan.setText("Scan");
+			buttonConnectionStatus.setBackgroundTintList(grayStateList);
+			buttonConnectionStatus.setText("Disconnected");
+			buttonArmedStatus.setBackgroundTintList(grayStateList);
+			buttonArmedStatus.setText("Unarmed");
+			buttonEngagedStatus.setBackgroundTintList(grayStateList);
+			buttonEngagedStatus.setText("Unengaged");
+			buttonAlarmStatus.setBackgroundTintList(grayStateList);
+			buttonAlarmStatus.setText("No Alarms");
 			break;
 		case isScanning:
 			buttonScan.setText("Scanning");
@@ -165,40 +198,66 @@ public class MainActivity  extends BlunoLibrary {
 			displayString = serialStatusText.getText().toString();
 		}
 
-
-		// find the alarm button in the layout
-		Button alarmButton = findViewById(R.id.alarmButton);
 		// if the received string equals "TRIGGER_ALARM"
 		if (theString.contains("TRIGGER_ALARM")) {
 			// make the alarm button visible
-			alarmButton.setVisibility(View.VISIBLE);
 			buttonDisarm.setVisibility(View.VISIBLE);
 			serialStatusText.setText(displayString);
+
+			buttonEngagedStatus.setBackgroundTintList(redStateList);
+			buttonEngagedStatus.setText("Unengaged");
+
+
+			// Get the current tint list from the button
+			ColorStateList currentTintList = buttonAlarmStatus.getBackgroundTintList();
+
+			// Check if the default color of the current tint list is the same as the red color
+			if (currentTintList != null && currentTintList.getDefaultColor() == redStateList.getDefaultColor()) {
+				// Define a new ColorStateList for the greyed-out red color
+				// Replace "0x80FF0000" with the desired greyed-out red color in hexadecimal format
+				ColorStateList greyRedStateList = ColorStateList.valueOf(Color.parseColor("#80FF0000"));
+				buttonAlarmStatus.setBackgroundTintList(greyRedStateList);
+			}
+			else {
+				buttonAlarmStatus.setBackgroundTintList(redStateList);
+			}
+			buttonAlarmStatus.setText("ALARM TRIGGERED");
+
 		}
 		else if (theString.contains("WAIT_FOR_ARM")) {
 			buttonArm.setVisibility(View.VISIBLE);
-			alarmButton.setVisibility(View.GONE);
 			buttonDisarm.setVisibility(View.GONE);
 			serialStatusText.setText(displayString);
+
+			buttonArmedStatus.setBackgroundTintList(yellowStateList);
+			buttonArmedStatus.setText("Ready To Arm");
+
+			buttonEngagedStatus.setBackgroundTintList(grayStateList);
+			buttonEngagedStatus.setText("Unengaged");
+
+			buttonAlarmStatus.setBackgroundTintList(grayStateList);
+			buttonAlarmStatus.setText("No Alarms");
 		}
 		else if (theString.contains("WAIT_SWITCH_ENGAGE")) {
 			buttonArm.setVisibility(View.GONE);
-			alarmButton.setVisibility(View.GONE);
 			buttonDisarm.setVisibility(View.VISIBLE);
 			serialStatusText.setText(displayString);
+
+			buttonArmedStatus.setBackgroundTintList(greenStateList);
+			buttonArmedStatus.setText("Armed");
+			buttonEngagedStatus.setBackgroundTintList(yellowStateList);
+			buttonEngagedStatus.setText("Unengaged");
 		}
 		else if (theString.contains("SWITCH_ARMED")) {
 			buttonArm.setVisibility(View.GONE);
-			alarmButton.setVisibility(View.GONE);
 			buttonDisarm.setVisibility(View.VISIBLE);
 			serialStatusText.setText(displayString);
-		}
-//		else {
-//			buttonDisarm.setVisibility(View.GONE);
-//			alarmButton.setVisibility(View.GONE);
-//			buttonArm.setVisibility(View.GONE);
-//		}
 
+			buttonEngagedStatus.setBackgroundTintList(greenStateList);
+			buttonEngagedStatus.setText("Engaged");
+			buttonAlarmStatus.setBackgroundTintList(greenStateList);
+			buttonAlarmStatus.setText("No Alarms");
+		}
 
 		//The Serial data from the BLUNO may be sub-packaged, so using a buffer to hold the String is a good choice.
 		((ScrollView)serialReceivedText.getParent()).fullScroll(View.FOCUS_DOWN);
